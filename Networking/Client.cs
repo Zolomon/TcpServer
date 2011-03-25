@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Text;
 
 namespace Networking
 {
@@ -24,13 +25,16 @@ namespace Networking
 //					Console.WriteLine (r.ReadString ());
 					BinaryWriter w = new BinaryWriter(s);
 					BinaryReader r = new BinaryReader(s);
+					byte[] data = new byte[1024];
+					int recv;
+					
 					while (c.Connected) {
 						w.Write(Console.ReadLine());
 						w.Flush();
 						
 						data = new byte[1024];
 						recv = s.Read (data, 0, data.Length);
-						Console.WriteLine ("From {0}: {1}", client.Client.RemoteEndPoint.ToString (), Encoding.ASCII.GetString (data, 0, recv));
+						Console.WriteLine ("From {0}: {1}", c.Client.RemoteEndPoint.ToString (), Encoding.ASCII.GetString (data, 0, recv));
 						if (recv == 0) {
 							break;
 						}
