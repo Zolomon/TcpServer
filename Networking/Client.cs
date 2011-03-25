@@ -8,8 +8,10 @@ namespace Networking
 {
 	public class Client
 	{
+		Context context;
 		public Client (string address, int portToListen)
 		{
+			context = new Context(new StatePlayerA());
 			Connect ("Hello", address, portToListen);
 		}
 
@@ -18,18 +20,17 @@ namespace Networking
 			using (TcpClient c = new TcpClient (address, portToListen)) {
 				
 				using (NetworkStream s = c.GetStream ()) {
-//					BinaryWriter w = new BinaryWriter (s);
-//					w.Write (Console.ReadLine());
-//					w.Flush ();
-//					BinaryReader r = new BinaryReader (s);
-//					Console.WriteLine (r.ReadString ());
 					BinaryWriter w = new BinaryWriter(s);
 					BinaryReader r = new BinaryReader(s);
 					byte[] data = new byte[1024];
 					int recv;
 					
 					while (c.Connected) {
-						w.Write(Console.ReadLine());
+						byte[] state = new byte[10];
+						state[0] = 1;
+						state[3] = 0;
+						w.Write(state);
+						//w.Write();
 						w.Flush();
 						
 						data = new byte[1024];

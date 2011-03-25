@@ -10,9 +10,12 @@ namespace Networking
 	public class Server
 	{
 		TcpListener listener;
-
+		Context context;
+		
 		public Server ()
 		{
+			context = new Context(new StatePlayerA());
+			
 			Start ();
 			
 			HandleRequests ();
@@ -44,7 +47,7 @@ namespace Networking
 				newThread.Start();
 			}
 		}
-
+				
 		private class ConnectionThread
 		{
 			public TcpListener ThreadListener { get; set; }
@@ -69,13 +72,23 @@ namespace Networking
 				string mod = "Welcome to my test server";
 				data = Encoding.ASCII.GetBytes (mod);
 				ns.Write (data, 0, data.Length);
+				string msg = String.Empty;
+				int playerTurn;
+				int[] board = new board[9];
 				
 				while (client.Connected) {
 					data = new byte[1024];
 					recv = ns.Read (data, 0, data.Length);
+					msg = Encoding.ASCII.GetString(data, 0, recv);
 					Console.WriteLine("From {0}: {1}", 
 					                  client.Client.RemoteEndPoint.ToString(), 
-					                  Encoding.ASCII.GetString(data, 0, recv));
+					                  msg);
+					
+					Console.WriteLine ("Player {0} turn ");
+					Console.WriteLine ("{0} {1} {2}", data[1],data[2],data[2]);
+					Console.WriteLine ("{0} {1} {2}", data[3],data[4],data[5]);
+					Console.WriteLine ("{0} {1} {2}", data[6],data[7],data[8]);
+					
 					if (recv == 0) {
 						break;
 					}
