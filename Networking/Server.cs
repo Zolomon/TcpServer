@@ -73,6 +73,9 @@ namespace Networking
 				while (client.Connected) {
 					data = new byte[1024];
 					recv = ns.Read (data, 0, data.Length);
+					Console.WriteLine("From {0}: {1}", 
+					                  client.Client.RemoteEndPoint.ToString(), 
+					                  Encoding.ASCII.GetString(data, 0, recv));
 					if (recv == 0) {
 						break;
 					}
