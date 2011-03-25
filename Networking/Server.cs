@@ -73,8 +73,8 @@ namespace Networking
 				data = Encoding.ASCII.GetBytes (mod);
 				ns.Write (data, 0, data.Length);
 				string msg = String.Empty;
-				int playerTurn;
-				int[] board = new board[9];
+				//byte playerTurn;
+				//byte[] board = new byte[9];
 				
 				while (client.Connected) {
 					data = new byte[1024];
