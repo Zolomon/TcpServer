@@ -43,33 +43,34 @@ namespace Networking
 
 		private void Update ()
 		{
+			string msg;
+				
 			while (client.Connected) {
-				SendMessage (new byte[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 });
-				Console.WriteLine ("From {0}:{1}: {2}", ip, port, GetMsg (ReceiveMessage ()));
-				Console.Write("'Exit' to quit: ");
-				if (Console.ReadLine () == "exit") {
+				// Get current state.. 
+				Console.WriteLine ("From {0}:{1}: {2}", ip, port, ReceiveMessage ());
+				
+				// Fetch command
+				Console.Write("Enter command ('exit' to exit): ");				
+				if ((msg = Console.ReadLine ()) == "exit") { 
+					// Exit
 					break;
+				} else {
+					// Send command
+					SendMessage(msg);
 				}
 			}
 		}
 
-		public void SendMessage (byte[] msgInBytes)
+		public void SendMessage (string msg)
 		{
-			writer.Write (msgInBytes);
+			writer.Write (msg);
 			writer.Flush ();
-			Console.WriteLine ("Msg sent to {0}:{1}: {1}", ip, port, Encoding.ASCII.GetString (msgInBytes));
+			Console.WriteLine ("Msg sent to {0}:{1}: {1}", ip, port, msg);
 		}
 
-		public byte[] ReceiveMessage ()
+		public string ReceiveMessage ()
 		{
-			byte[] data = new byte[1024];
-			bytesReceived = stream.Read (data, 0, data.Length);
-			return data;
-		}
-
-		public string GetMsg (byte[] msg)
-		{
-			return Encoding.ASCII.GetString (msg);
+			return reader.ReadString();
 		}
 	}
 }

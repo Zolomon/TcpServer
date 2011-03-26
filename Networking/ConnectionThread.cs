@@ -11,6 +11,8 @@ namespace Networking
 		public TcpListener ThreadListener { get; set; }
 		private TcpClient client { get; set; }
 		private NetworkStream stream { get; set; }
+		private BinaryWriter writer { get; set; }
+		private BinaryReader reader { get; set; }
 		private string ip { get; set; }
 		private int port { get; set; }
 		private byte[] data { get; set; }
@@ -27,30 +29,25 @@ namespace Networking
 		{
 			Connect ();
 			
+			writer = new BinaryWriter (client.GetStream ());
+			reader = new BinaryReader (client.GetStream ());
+			
 			Update ();
 			
 			Disconnect ();
 		}
-
-		private void MOD ()
+		public void SendMessage (string msg)
 		{
-			string mod = "Welcome to my test server";
-			data = Encoding.ASCII.GetBytes (mod);
-			stream.Write (data, 0, data.Length);
+			writer.Write (msg);
+			writer.Flush ();
+			Console.WriteLine ("Sent to {0}: {1}", client.Client.RemoteEndPoint.ToString (), msg);
 		}
 
-		public void SendMessage (byte[] msgInBytes)
+		public string ReceiveMessage ()
 		{
-			stream.Write (msgInBytes, 0, msgInBytes.Length);
-			stream.Flush ();
-			Console.WriteLine ("Sent to {0}: {1}", client.Client.RemoteEndPoint.ToString (), enc.GetString (msgInBytes));
-		}
-
-		public byte[] ReceiveMessage ()
-		{
-			byte[] data = new byte[1024];
-			bytesReceived = stream.Read (data, 0, data.Length);
-			return data;
+			string msg = reader.ReadString ();
+			Console.WriteLine ("From {0}: {1}", client.Client.RemoteEndPoint.ToString (), msg);
+			return msg;
 		}
 
 		private void Connect ()
@@ -63,26 +60,26 @@ namespace Networking
 
 		private void Update ()
 		{
-			Encoding enc = Encoding.ASCII;
+			// Send welcome message
+			SendMessage ("Welcome");
 			
 			while (client.Connected) {
-								
-				data = ReceiveMessage ();
-				string msg = enc.GetString(data);
-				Console.WriteLine ("From {0}: {1}",
-				                   client.Client.RemoteEndPoint.ToString(),
-				                   msg );
-				SendMessage(enc.GetBytes( msg + " back at you!"));
+				
+				// Get position
+				string position = ReceiveMessage ();
+				
+				// Send position accepted
+				SendMessage (position + " received.");
 				if (bytesReceived == 0) {
 					break;
 				}
-				
-				Console.WriteLine (data.ConvertToString ());
 			}
 		}
 
 		private void Disconnect ()
 		{
+			reader.Close ();
+			writer.Close ();
 			stream.Close ();
 			client.Close ();
 			connections--;
