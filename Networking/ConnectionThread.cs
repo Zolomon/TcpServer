@@ -72,7 +72,7 @@ namespace Networking
 				Console.WriteLine ("From {0}: {1}",
 				                   client.Client.RemoteEndPoint.ToString(),
 				                   msg );
-				SendMessage(msg + " back at you!");
+				SendMessage(enc.GetBytes( msg + " back at you!"));
 				if (bytesReceived == 0) {
 					break;
 				}
