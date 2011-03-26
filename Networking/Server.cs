@@ -11,15 +11,13 @@ namespace Networking
 	{
 		TcpListener listener;
 		Context context;
-		
+
 		public Server ()
 		{
-			context = new Context(new StatePlayerA());
+			context = new Context (new StatePlayerA ());
 			
 			Start ();
-			
 			HandleRequests ();
-			
 			Stop ();
 		}
 
@@ -44,58 +42,84 @@ namespace Networking
 				ConnectionThread newConnection = new ConnectionThread ();
 				newConnection.ThreadListener = this.listener;
 				Thread newThread = new Thread (new ThreadStart (newConnection.HandleConnection));
-				newThread.Start();
+				newThread.Start ();
 			}
 		}
-				
+
 		private class ConnectionThread
 		{
 			public TcpListener ThreadListener { get; set; }
+			private TcpClient client { get; set; }
+			private NetworkStream stream { get; set; }
+			private string ip { get; set; }
+			private int port { get; set; }
+			private byte[] data { get; set; }
+			private int bytesReceived { get; set; }
 			private static int connections = 0;
+			private Encoding enc { get; set; }
 
 			public ConnectionThread ()
 			{
-				
+				enc = Encoding.ASCII;
 			}
 
 			public void HandleConnection ()
 			{
-				int recv;
-				byte[] data = new byte[1024];
+				Connect ();
 				
-				TcpClient client = ThreadListener.AcceptTcpClient ();
-				NetworkStream ns = client.GetStream ();
-				connections++;
+				Update ();
 				
-				Console.WriteLine ("New client accepted: {0} active connections", connections.ToString ());
-				
+				Disconnect ();
+			}
+
+			private void MOD ()
+			{
 				string mod = "Welcome to my test server";
 				data = Encoding.ASCII.GetBytes (mod);
-				ns.Write (data, 0, data.Length);
-				string msg = String.Empty;
-				//byte playerTurn;
-				//byte[] board = new byte[9];
+				stream.Write (data, 0, data.Length);
+			}
+
+			public void SendMessage (byte[] msgInBytes)
+			{
+				stream.Write (msgInBytes, 0, msgInBytes.Length);
+				stream.Flush ();
+				Console.WriteLine ("Sent to {0}: {1}", client.Client.RemoteEndPoint.ToString (), enc.GetString(msgInBytes));
+			}
+
+			public byte[] ReceiveMessage ()
+			{
+				byte[] data = new byte[1024];
+				bytesReceived = stream.Read (data, 0, data.Length);
+				Console.WriteLine ("Received from {0}: {1}", client.Client.RemoteEndPoint.ToString(), 
+				                   enc.GetString(data));
+				return data;
+			}
+
+			private void Connect ()
+			{
+				client = ThreadListener.AcceptTcpClient ();
+				stream = client.GetStream ();
+				connections++;
+				Console.WriteLine ("New client accepted: {0} active connections", connections.ToString ());
+			}
+
+			private void Update ()
+			{
+				Encoding enc = Encoding.ASCII;
 				
 				while (client.Connected) {
-					data = new byte[1024];
-					recv = ns.Read (data, 0, data.Length);
-					msg = Encoding.ASCII.GetString(data, 0, recv);
-					Console.WriteLine("From {0}: {1}", 
-					                  client.Client.RemoteEndPoint.ToString(), 
-					                  msg);
+					Console.WriteLine ("From {0}: {1}", client.Client.RemoteEndPoint.ToString (), enc.GetString (ReceiveMessage ()));
+					Console.ReadLine ();
 					
-					Console.WriteLine ("Player {0} turn ");
-					Console.WriteLine ("{0} {1} {2}", data[1],data[2],data[2]);
-					Console.WriteLine ("{0} {1} {2}", data[3],data[4],data[5]);
-					Console.WriteLine ("{0} {1} {2}", data[6],data[7],data[8]);
-					
-					if (recv == 0) {
+					if (bytesReceived == 0) {
 						break;
 					}
-					
-					ns.Write (data, 0, recv);
 				}
-				ns.Close ();
+			}
+
+			private void Disconnect ()
+			{
+				stream.Close ();
 				client.Close ();
 				connections--;
 				Console.WriteLine ("Client disconnected: {0} active connections", connections);

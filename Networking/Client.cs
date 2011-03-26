@@ -8,42 +8,70 @@ namespace Networking
 {
 	public class Client
 	{
-		Context context;
+		private BinaryWriter writer { get; set; }
+		private BinaryReader reader { get; set; }
+		private TcpClient client { get; set; }
+		private NetworkStream stream { get; set; }
+		private Context context;
+		private int bytesReceived;
+
+		private static string ip { get; set; }
+		private static int port { get; set; }
+
 		public Client (string address, int portToListen)
 		{
-			context = new Context(new StatePlayerA());
+			context = new Context (new StatePlayerA ());
+			
 			Connect ("Hello", address, portToListen);
 		}
 
 		public void Connect (string msg, string address, int portToListen)
 		{
-			using (TcpClient c = new TcpClient (address, portToListen)) {
-				if (c.Connected) {
+			using (client = new TcpClient (address, portToListen)) {
+				if (client.Connected) {
 					Console.WriteLine ("Connection to {0}:{1} established", address, portToListen);
 				}
-				using (NetworkStream s = c.GetStream ()) {
-					BinaryWriter w = new BinaryWriter(s);
-					BinaryReader r = new BinaryReader(s);
-					byte[] data = new byte[1024];
-					int recv;
+				
+				using (stream = client.GetStream ()) {
+					writer = new BinaryWriter (stream);
+					reader = new BinaryReader (stream);
 					
-					while (c.Connected) {
-						byte[] state = new byte[10];
-						state[0] = 1;
-						state[3] = 0;
-						w.Write(state);
-						//w.Write();
-						w.Flush();
-						
-						data = new byte[1024];
-						recv = s.Read (data, 0, data.Length);
-						Console.WriteLine ("From {0}: {1}", c.Client.RemoteEndPoint.ToString (), Encoding.ASCII.GetString (data, 0, recv));
-						if (recv == 0) {
-							break;
-						}
-					}
+					Update ();
 				}
 			}
+		}
+
+		private void Update ()
+		{
+			while (client.Connected) {
+				SendMessage (new byte[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 });
+				Console.ReadLine ();
+				
+				Console.WriteLine ("From {0}:{1}: {2}", ip, port, GetMsg (ReceiveMessage ()));
+				Console.Write("'Exit' to quit: ");
+				if (Console.ReadLine () == "exit") {
+					break;
+				}
+			}
+		}
+
+		public void SendMessage (byte[] msgInBytes)
+		{
+			writer.Write (msgInBytes);
+			writer.Flush ();
+			Console.WriteLine ("Msg sent to {0}:{1}: {1}", ip, port, Encoding.ASCII.GetString (msgInBytes));
+		}
+
+		public byte[] ReceiveMessage ()
+		{
+			byte[] data = new byte[1024];
+			bytesReceived = stream.Read (data, 0, data.Length);
+			return data;
+		}
+
+		public string GetMsg (byte[] msg)
+		{
+			return Encoding.ASCII.GetString (msg);
 		}
 	}
 }
