@@ -18,7 +18,9 @@ namespace Networking
 		public void Connect (string msg, string address, int portToListen)
 		{
 			using (TcpClient c = new TcpClient (address, portToListen)) {
-				
+				if (c.Connected) {
+					Console.WriteLine ("Connection to {0}:{1} established", address, portToListen);
+				}
 				using (NetworkStream s = c.GetStream ()) {
 					BinaryWriter w = new BinaryWriter(s);
 					BinaryReader r = new BinaryReader(s);
