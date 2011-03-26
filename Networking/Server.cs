@@ -90,8 +90,6 @@ namespace Networking
 			{
 				byte[] data = new byte[1024];
 				bytesReceived = stream.Read (data, 0, data.Length);
-				Console.WriteLine ("Received from {0}: {1}", client.Client.RemoteEndPoint.ToString(), 
-				                   enc.GetString(data));
 				return data;
 			}
 
@@ -108,12 +106,17 @@ namespace Networking
 				Encoding enc = Encoding.ASCII;
 				
 				while (client.Connected) {
-					Console.WriteLine ("From {0}: {1}", client.Client.RemoteEndPoint.ToString (), enc.GetString (ReceiveMessage ()));
-					Console.ReadLine ();
+					//Console.WriteLine ("From {0}: {1}", 
+					//                   client.Client.RemoteEndPoint.ToString (), 
+					//                   enc.GetString (ReceiveMessage ()));
+					//Console.ReadLine ();
 					
+					data = ReceiveMessage();					
 					if (bytesReceived == 0) {
 						break;
 					}
+					
+					Console.WriteLine (data.BytesToString());
 				}
 			}
 

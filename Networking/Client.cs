@@ -45,8 +45,6 @@ namespace Networking
 		{
 			while (client.Connected) {
 				SendMessage (new byte[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 });
-				Console.ReadLine ();
-				
 				Console.WriteLine ("From {0}:{1}: {2}", ip, port, GetMsg (ReceiveMessage ()));
 				Console.Write("'Exit' to quit: ");
 				if (Console.ReadLine () == "exit") {
