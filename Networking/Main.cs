@@ -8,8 +8,8 @@ namespace Networking
 	{
 		public static void Main (string[] args)
 		{
-			Client c;
-			Server s;
+			Client c = null;
+			Server s = null;
 			//Server s = new Server();
 			if (args[0].Equals ("c")) {
 				c = new Client (args[1].ToString (), Convert.ToInt32 (args[2]));
